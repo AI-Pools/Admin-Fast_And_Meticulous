@@ -13,4 +13,5 @@ When finished, submit your code to the work plateform.
 
 Userfull links:<br>
 *   What is ``pickle``: https://docs.python.org/3/library/pickle.html
+*   what is ``matplot``: https://matplotlib.org/
 *   What is ``Q Learning``: https://youtu.be/qhRNvCVVJaA
