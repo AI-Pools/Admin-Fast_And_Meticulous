@@ -5,17 +5,18 @@ import time
 
 from matplotlib import style
 from BlobEnv import BlobEnv
+from collections import namedtuple
 
-style.use("ggplot")
-
-EPISODES = 25_000
+EPISODES = 50_001
 SHOW_EVERY = 5000
 
 LEARNING_RATE = 0.1
 DISCOUNT = 0.95
 
 epsilon = 0.9
-EPS_DECAY = 0.9998
+EPS_DECAY = 0.99998
+
+MEM_SIZE = 400
 
 start_q_table = None
 
@@ -29,42 +30,62 @@ if start_q_table is None:
             for x2 in range(-BlobEnv.SIZE + 1, BlobEnv.SIZE):
                 for y2 in range(-BlobEnv.SIZE + 1, BlobEnv.SIZE):
                     q_table[((x1,y1), (x2,y2))] = [np.random.uniform(-5,0) for i in range (4)]
+                    #q_table[((x1,y1), (x2,y2))] = [0, 0, 0, 0]
 else:
     with open(start_q_table, "rb") as f:
         q_table = pickle.load(f)
+        namedtuple()
+
+def select_action(epsilon, q_table, state):
+    if np.random.random() > epsilon:
+        action = np.argmax(q_table[obs])
+    else:
+        action = np.random.randint(0, 4)
+    return action
+
+
+class Memory():
+    def __init__(self, mem_size):
+        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state')) # soluce #\n"
+        self.memory = []
+        self.mem_size = mem_size
+
+    def add(self, state, action, reward, next_state):
+        if len(self.memory) >= self.mem_size:
+            self.memory = self.memory[:1]
+        transition = self.transition(state, action, reward, next_state)
+        self.memory.append(transition)
+
+    def train(self, q_table):
+        for transition in memory.memory:
+            state, action, reward, next_state = transition
+            q_table[state][action] = (1 - LEARNING_RATE) * q_table[state][action] + LEARNING_RATE * (reward + DISCOUNT * np.max(q_table[next_state]))
+
+        return q_table
 
 episode_rewards = []
+memory = Memory(MEM_SIZE)
 
 for episode in range(EPISODES):
-    if episode % SHOW_EVERY == 0:
+    if episode % SHOW_EVERY == 0 and episode != 0:
         print(f"On episode {episode}, epsilon is {epsilon}")
         print(f"Mean on {SHOW_EVERY} ep: {np.mean(episode_rewards[-SHOW_EVERY:])}\n")
         show = True
     else:
         show = False
     episode_reward = 0
+    obs = BlobEnv.getObs()
     for i in range(stepAllowed):
-        obs = BlobEnv.getObs()
-        if np.random.random() > epsilon:
-            action = np.argmax(q_table[obs])
-        else:
-            action = np.random.randint(0, 4)
-        obs, new_obs, reward = BlobEnv.doAction(action)
-
-        max_future_q = np.max(q_table[new_obs])
-        current_q = q_table[obs][action]
-        if reward == BlobEnv.FOOD_REWARD:
-            new_q = BlobEnv.FOOD_REWARD
-        elif reward == -BlobEnv.ENEMY_PENALTY:
-            new_q = -BlobEnv.ENEMY_PENALTY
-        else:
-            new_q = (1 - LEARNING_RATE) * current_q + LEARNING_RATE * (reward + DISCOUNT * max_future_q)
-        q_table[obs][action] = new_q
+        action = select_action(epsilon, q_table, obs)
+        obs, new_obs, reward, done = BlobEnv.doAction(action)
+        memory.add(obs, action, reward, new_obs)
         if show:
             BlobEnv.show()
         episode_reward += reward
-        if reward == BlobEnv.FOOD_REWARD or reward == -BlobEnv.ENEMY_PENALTY:
+        if done:
             break
+
+    q_table = memory.train(q_table)
     episode_rewards.append(episode_reward)
     epsilon *= EPS_DECAY
     BlobEnv.resetEpisode()
@@ -75,5 +96,5 @@ plt.ylabel(f"reward {SHOW_EVERY}ma")
 plt.xlabel("episode #")
 plt.show()
 
-with open(f"qtable-{int(time.time())}.pickle", "wb") as f:
+with open(f"_table-{int(time.time())}.pickle", "wb") as f:
     pickle.dump(q_table, f)

@@ -38,6 +38,7 @@ class Blob():
 
 class BlobEnv():
     def __init__(self, stepAllowed=200, size=10):
+        self.done = False
         self.SIZE = size
         self.d = {1:(255,175,0), 2:(0,255,0), 3:(0,0,255)}
         self.player = Blob(size=size)
@@ -68,14 +69,17 @@ class BlobEnv():
 
     def doAction(self, action: int):
         if self.currentStep >= self.stepAllowed:
+            self.done = True
             print(f"\033[93mWARNING: You already reached the max step: ({self.currentStep}/{self.stepAllowed})\033[0;37;40m")
-            return (self.player-self.food, self.player-self.enemy), (self.player-self.food, self.player-self.enemy), self.action_reward
+            return (self.player-self.food, self.player-self.enemy), (self.player-self.food, self.player-self.enemy), self.action_reward, self.done
         elif self.action_reward == self.FOOD_REWARD:
+            self.done = True
             print(f"\033[93mWARNING: You already reached the food.\nUse BlobEnv().action_reward to know when to break.\033[0;37;40m")
-            return (self.player-self.food, self.player-self.enemy), (self.player-self.food, self.player-self.enemy), self.action_reward
+            return (self.player-self.food, self.player-self.enemy), (self.player-self.food, self.player-self.enemy), self.action_reward, self.done
         elif self.action_reward == -self.ENEMY_N:
+            self.done = True
             print(f"\033[93mWARNING: You already reached the enemy.\nUse BlobEnv().action_reward to know when to break.\033[0;37;40m")
-            return (self.player-self.food, self.player-self.enemy), (self.player-self.food, self.player-self.enemy), self.action_reward
+            return (self.player-self.food, self.player-self.enemy), (self.player-self.food, self.player-self.enemy), self.action_reward, self.done
         else:
             self.currentStep += 1
         obs = (self.player-self.food, self.player-self.enemy)
@@ -85,12 +89,14 @@ class BlobEnv():
 
         if self.player.x == self.enemy.x and self.player.y == self.enemy.y:
             self.action_reward = -self.ENEMY_PENALTY
+            self.done = True
         elif self.player.x == self.food.x and self.player.y == self.food.y:
             self.action_reward = self.FOOD_REWARD
+            self.done = True
         else:
             self.action_reward = -self.MOVE_PENALTY
         new_obs = (self.player-self.food, self.player-self.enemy)
-        return obs, new_obs, self.action_reward
+        return obs, new_obs, self.action_reward, self.done
 
     def getObs(self):
         return self.player-self.food, self.player-self.enemy
@@ -101,3 +107,4 @@ class BlobEnv():
         self.food = Blob()
         self.enemy = Blob()
         self.currentStep = 0
+        self.done = False
