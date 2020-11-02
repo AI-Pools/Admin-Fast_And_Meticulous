@@ -23,18 +23,14 @@ start_q_table = None
 stepAllowed = 200
 BlobEnv = BlobEnv(stepAllowed=stepAllowed)
 
-if start_q_table is None:
+def init_Qtable():
     q_table = {}
     for x1 in range(-BlobEnv.SIZE + 1, BlobEnv.SIZE):
         for y1 in range(-BlobEnv.SIZE + 1, BlobEnv.SIZE):
             for x2 in range(-BlobEnv.SIZE + 1, BlobEnv.SIZE):
                 for y2 in range(-BlobEnv.SIZE + 1, BlobEnv.SIZE):
                     q_table[((x1,y1), (x2,y2))] = [np.random.uniform(-5,0) for i in range (4)]
-                    #q_table[((x1,y1), (x2,y2))] = [0, 0, 0, 0]
-else:
-    with open(start_q_table, "rb") as f:
-        q_table = pickle.load(f)
-        namedtuple()
+    return q_table
 
 def select_action(epsilon, q_table, state):
     if np.random.random() > epsilon:
@@ -43,6 +39,12 @@ def select_action(epsilon, q_table, state):
         action = np.random.randint(0, 4)
     return action
 
+if start_q_table is None:
+    q_table = init_Qtable
+else:
+    with open(start_q_table, "rb") as f:
+        q_table = pickle.load(f)
+        namedtuple()
 
 class Memory():
     def __init__(self, mem_size):
@@ -73,8 +75,10 @@ for episode in range(EPISODES):
         show = True
     else:
         show = False
+
     episode_reward = 0
     obs = BlobEnv.getObs()
+
     for i in range(stepAllowed):
         action = select_action(epsilon, q_table, obs)
         obs, new_obs, reward, done = BlobEnv.doAction(action)
