@@ -39,7 +39,7 @@ def select_action(epsilon, q_table, state):
     return action
 
 if start_q_table is None:
-    q_table = init_Qtable
+    q_table = init_Qtable()
 else:
     with open(start_q_table, "rb") as f:
         q_table = pickle.load(f)
