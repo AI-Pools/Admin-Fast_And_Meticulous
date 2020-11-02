@@ -47,7 +47,7 @@ Here is few things you need to know about the BlobEnv:
 ## Consignes:
 
 Completez le code fournit par l'équipe scientifique *(submit.py)* en uttilisant le Q-learning.
-<br>Votre agent doit obtenir une moyenne minimum de reward superieur ou egal à 30.
+<br>Votre agent doit obtenir une moyenne minimum de reward superieur ou egal à -60.
 
 Une fois sela fait, soumetez votre code sur la plateforme.
 
