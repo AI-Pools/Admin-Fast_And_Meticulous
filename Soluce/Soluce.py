@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import pickle
 import time
 
-from matplotlib import style
 from BlobEnv import BlobEnv
 from collections import namedtuple
 
@@ -44,11 +43,10 @@ if start_q_table is None:
 else:
     with open(start_q_table, "rb") as f:
         q_table = pickle.load(f)
-        namedtuple()
 
 class Memory():
     def __init__(self, mem_size):
-        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state')) # soluce #\n"
+        self.transition = namedtuple('Transition', ('state', 'action', 'reward', 'next_state'))
         self.memory = []
         self.mem_size = mem_size
 
@@ -90,9 +88,9 @@ for episode in range(EPISODES):
             break
 
     q_table = memory.train(q_table)
-    episode_rewards.append(episode_reward)
     epsilon *= EPS_DECAY
     BlobEnv.resetEpisode()
+    episode_rewards.append(episode_reward)
 
 moving_avg = np.convolve(episode_rewards, np.ones((SHOW_EVERY,)) / SHOW_EVERY, mode="valid")
 plt.plot([i for i in range(len(moving_avg))], moving_avg)
